@@ -84,12 +84,10 @@ fn similarity_score(left: &[i32], right: &[i32]) -> i32 {
 
     let mut similarity = 0;
     for l in left {
-        // Mostly I'm omitting error handling in this implementation.  Maybe I shouldn't.  I could
-        // just `.unwrap()` the result of `.get`.  I'm trying it the other way here.
-        if let Some(&count) = right_side_counts.get(&l) {
-            // `count` is a u32.  To multiply, `l` and `count` must be the same type.
-            similarity += l * count as i32;
-        }
+        // The annoying `*` and `&` in this line are because of `get` returning an `Option<&u32>`.
+        // I just want a simple integer, so lots of referencing and dereferencing and casting.
+        let count = *right_side_counts.get(&l).unwrap_or(&0) as i32;
+        similarity += l * count;
     }
 
     similarity

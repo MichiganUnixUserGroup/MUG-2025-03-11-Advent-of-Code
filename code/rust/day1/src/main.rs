@@ -3,14 +3,14 @@ use regex::Regex;
 use std::io::{self, BufRead};
 
 // How to run:
-//   When you have rust installed on your system, be in the day1 directory (that is, cd to the
+//   When you have Rust installed on your system, be in the day1 directory (that is, cd to the
 //   directory that contains Cargo.toml).  You can run the tests by saying `cargo test`.  You can
 //   run on real data by piping in input.  Here's what I say: `cargo run < day1.input`.  Your input
 //   is different than mine; I didn't include my data.  Use your own.  You use the same data on a
 //   given day for both part 1 and part 2 of the problem.
 
 // Would an ordinary program need _this_ level of comments?  No.  This implementation is meant to
-// be read, and particularly to be read by programmers who don't know rust.  Also, I mostly avoid
+// be read, and particularly to be read by programmers who don't know Rust.  Also, I mostly avoid
 // explicit loops here.  Where I can use the "functional style", I do.  Supposedly they are mostly
 // equivalent and there is no speed advantage either way.
 
@@ -64,7 +64,7 @@ fn read_the_two_lists() -> (Vec<i32>, Vec<i32>) {
 }
 
 fn distance_between_the_two_lists(left_slice: &[i32], right_slice: &[i32]) -> i32 {
-    // The problem statement says the lists are sorted.  Sorting modifies in place, so we must 
+    // The problem statement says the lists must be sorted.  Sorting modifies in place, so we must 
     // make something mutable.
     let mut left_vec: Vec<i32> = left_slice.to_vec();
     let mut right_vec: Vec<i32> = right_slice.to_vec();
@@ -83,7 +83,10 @@ fn distance_between_the_two_lists(left_slice: &[i32], right_slice: &[i32]) -> i3
     // subtracts to find that difference, but we need it to be positive, so `.abs()`.  Finally,
     // `.sum()` adds them all up.  That sum is the final answer.  Note again, this is a tail
     // expression: the return value of the function.
-    left_vec.iter().zip(right_vec.iter()).map(|(l, r)| (l - r).abs()).sum()
+    left_vec.iter()
+        .zip(right_vec.iter())
+        .map(|(l, r)| (l - r).abs())
+        .sum()
 }
 
 fn similarity_score(left_slice: &[i32], right_slice: &[i32]) -> i32 {

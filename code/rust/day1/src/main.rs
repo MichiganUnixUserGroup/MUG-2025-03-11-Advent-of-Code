@@ -2,8 +2,15 @@ use counter::Counter;
 use regex::Regex;
 use std::io::{self, BufRead};
 
+// How to run:
+//   When you have rust installed on your system, be in the day1 directory (that is, cd to the
+//   directory that contains Cargo.toml).  You can run the tests by saying `cargo test`.  You can
+//   run on real data by piping in input.  Here's what I say: `cargo run < day1.input`.  Your input
+//   is different than mine; I didn't include my data.  Use your own.  You use the same data on a
+//   given day for both part 1 and part 2 of the problem.
+
 // Would an ordinary program need _this_ level of comments?  No.  This implementation is meant to
-// be read, and particularly to be read by programmers who don't know Rust.  Also, I mostly avoid
+// be read, and particularly to be read by programmers who don't know rust.  Also, I mostly avoid
 // explicit loops here.  Where I can use the "functional style", I do.  Supposedly they are mostly
 // equivalent and there is no speed advantage either way.
 
@@ -51,7 +58,8 @@ fn read_the_two_lists() -> (Vec<i32>, Vec<i32>) {
         right_vec.push(r.parse().unwrap());
     }
 
-    // Must return ownership, therefore Vecs, not slices.
+    // Must return ownership, therefore Vecs, not slices.  No `return`.  No trailing `;`.  This is a
+    // "tail expression", i.e. the return value of the function.
     (left_vec, right_vec)
 }
 
@@ -73,7 +81,8 @@ fn distance_between_the_two_lists(left_slice: &[i32], right_slice: &[i32]) -> i3
     // works on two lists.  For each step, `.zip()` returns a tuple of two values, one from each
     // list.  This function is about the difference between the two sides, so `.map()` that
     // subtracts to find that difference, but we need it to be positive, so `.abs()`.  Finally,
-    // `.sum()` adds them all up.  That sum is the final answer.
+    // `.sum()` adds them all up.  That sum is the final answer.  Note again, this is a tail
+    // expression: the return value of the function.
     left_vec.iter().zip(right_vec.iter()).map(|(l, r)| (l - r).abs()).sum()
 }
 
@@ -87,13 +96,16 @@ fn similarity_score(left_slice: &[i32], right_slice: &[i32]) -> i32 {
 
     // Step 2: for each item in the left list, multiply by the number of times that item appears
     // in the right list.  Don't "uniquify" the left list.  If we hit the same number from the left
-    // list multiple times, it counts every time.
+    // list multiple times, it counts every time.  Note (again) that the entire following
+    // expression is a tail expression: the return value of the function.
 
     left_slice.iter().fold(0, |acc, &item| {
         // `.get` returns an `Option<&u32>` (because counts are unsigned).  Why it stores a
         // reference I don't know.  `.copied()` turns that into a `Option<u32>`.  It's no longer a
         // reference so I don't have dereference the whole lookup, nor give `&0` as the fallback
-        // value.  It feels cleaner to me.
+        // value.  It feels cleaner to me.  Note that in `fold` you don't modify `acc`, you return
+        // a new value for it, and that's what you get as an argument next time around.  And how do
+        // I return the new value?  With a tail expression of course!
         acc + item * right_counts.get(&item).copied().unwrap_or(0) as i32
     })
 }

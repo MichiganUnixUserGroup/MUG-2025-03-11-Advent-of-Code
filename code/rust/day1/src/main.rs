@@ -11,12 +11,12 @@ fn read_the_two_lists() -> (Vec<i32>, Vec<i32>) {
     // No parameters.  We get all our data from stdin.
     let stdin = io::stdin();
 
+    // Define a regular expression that captures two number strings separated by whitespace.
+    let re = Regex::new(r"^(\d+)\s+(\d+)$").unwrap();
+
     // We're returning two lists. They need to be mutable so we can push in all the values.
     let mut left_vec: Vec<i32> = vec![];
     let mut right_vec: Vec<i32> = vec![];
-
-    // Define a regular expression that captures two number strings separated by whitespace.
-    let re = Regex::new(r"^(\d+)\s+(\d+)$").unwrap();
 
     // Step 1: read the input
 

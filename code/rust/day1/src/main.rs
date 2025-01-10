@@ -1,5 +1,5 @@
 use counter::Counter;
-use regex::Regex;
+use std::cmp::Ord;
 use std::io::{self, BufRead};
 
 // How to run:
@@ -12,14 +12,36 @@ use std::io::{self, BufRead};
 // Would an ordinary program need _this_ level of comments?  No.  This implementation is meant to
 // be read, and particularly to be read by programmers who don't know Rust.  Also, I mostly avoid
 // explicit loops here.  Where I can use the "functional style", I do.  Supposedly they are mostly
-// equivalent and there is no speed advantage either way.
+// equivalent and there is no speed advantage either way.  I do some things in this implementation
+// just to learn more about Rust.  This is not the best possible solution to the problem, but
+// there's a lot to learn from this implementation.
+
+// This trait and its implementation directly below it are pure silliness.  They are so I can chain
+// the creation of a Vec and sorting it into one expression.  I'm really doing it just to learn.
+trait SortExt<T> {
+    // I only use the unstable version, so that's all I implement; but you can imagine having a
+    // stable version too.
+    fn to_sorted_unstable_vec(&self) -> Vec<T>;
+}
+
+impl<T: Ord + Clone> SortExt<T> for [T] {
+    fn to_sorted_unstable_vec(&self) -> Vec<T> {
+        let mut v = self.to_vec();
+        v.sort_unstable();
+        v
+    }
+}
 
 fn read_the_two_lists() -> (Vec<i32>, Vec<i32>) {
+    fn extract_two_numbers_from_a_line(line: &String) -> (i32, i32) {
+        // This assumes entirely well-formed input.
+        let mut iter = line.split_whitespace();
+        (iter.next().unwrap().parse().unwrap(),
+         iter.next().unwrap().parse().unwrap())
+    }
+
     // No parameters.  We get all our data from stdin.
     let stdin = io::stdin();
-
-    // Define a regular expression that captures two number strings separated by whitespace.
-    let re = Regex::new(r"^(\d+)\s+(\d+)$").unwrap();
 
     // We're returning two lists. They need to be mutable so we can push in all the values.
     let mut left_vec: Vec<i32> = vec![];
@@ -38,24 +60,9 @@ fn read_the_two_lists() -> (Vec<i32>, Vec<i32>) {
     // lists.
 
     for line in input_lines {
-        // This whole loop is an example of me _not_ handling errors.  Just one `unwrap` after
-        // another.  This simple program calculates a simple result.  I probably don't need fancy
-        // error handling, so `unwrap` and friends is appropriate.
-
-        // Apply the regular expression to the current line.  `captures` lets you get to the captured
-        // strings.  This might be a good place to do real error handling.  Maybe if we don't find
-        // two numbers on the line we could just skip it (with continue) going on to the next line.
-        let captures = re.captures(&line).unwrap();
-
-        // I hate that this takes two statements. I should write a helper that returns a tuple.
-        // Pull the two strings out of the match.  `l` and `r` are string slices, each one a
-        // number.
-        let l = captures.get(1).unwrap().as_str();
-        let r = captures.get(2).unwrap().as_str();
-
-        // Parse the two strings into actual numbers. Add one to each list.
-        left_vec.push(l.parse().unwrap());
-        right_vec.push(r.parse().unwrap());
+        let (left, right) = extract_two_numbers_from_a_line(&line);
+        left_vec.push(left);
+        right_vec.push(right);
     }
 
     // Must return ownership, therefore Vecs, not slices.  No `return`.  No trailing `;`.  This is a
@@ -64,18 +71,11 @@ fn read_the_two_lists() -> (Vec<i32>, Vec<i32>) {
 }
 
 fn distance_between_the_two_lists(left_slice: &[i32], right_slice: &[i32]) -> i32 {
-    // The problem statement says the lists must be sorted.  Sorting modifies in place, so we must 
-    // make something mutable.
-    let mut left_vec: Vec<i32> = left_slice.to_vec();
-    let mut right_vec: Vec<i32> = right_slice.to_vec();
-
-    // Step 1: sort the input lists
-
-    // So annoying that sorting doesn't return a value ... it can't be used in a chain above.
-    left_vec.sort_unstable();
-    right_vec.sort_unstable();
-
-    // Step 2: add up the distance at each step (in sync) through the lists
+    // The problem statement says the lists must be sorted.  We'll use our silly custom trait to
+    // turn each slice into a Vec and sort it at the same time, that way they don't have to be
+    // mutable.
+    let left_vec: Vec<i32> = left_slice.to_sorted_unstable_vec();
+    let right_vec: Vec<i32> = right_slice.to_sorted_unstable_vec();
 
     // We're stepping through both lists at the same time.  So each list needs `.iter()`.  `.zip()`
     // works on two lists.  For each step, `.zip()` returns a tuple of two values, one from each
@@ -102,15 +102,16 @@ fn similarity_score(left_slice: &[i32], right_slice: &[i32]) -> i32 {
     // list multiple times, it counts every time.  Note (again) that the entire following
     // expression is a tail expression: the return value of the function.
 
-    left_slice.iter().fold(0, |acc, &item| {
-        // `.get` returns an `Option<&u32>` (because counts are unsigned).  Why it stores a
-        // reference I don't know.  `.copied()` turns that into a `Option<u32>`.  It's no longer a
-        // reference so I don't have dereference the whole lookup, nor give `&0` as the fallback
-        // value.  It feels cleaner to me.  Note that in `fold` you don't modify `acc`, you return
-        // a new value for it, and that's what you get as an argument next time around.  And how do
-        // I return the new value?  With a tail expression of course!
-        acc + item * right_counts.get(&item).copied().unwrap_or(0) as i32
-    })
+    left_slice.iter()
+        .fold(0, |acc, &item| {
+            // `.get` returns an `Option<&u32>` (because counts are unsigned).  Why it stores a
+            // reference I don't know.  `.copied()` turns that into a `Option<u32>`.  It's no longer a
+            // reference so I don't have dereference the whole lookup, nor give `&0` as the fallback
+            // value.  It feels cleaner to me.  Note that in `fold` you don't modify `acc`, you return
+            // a new value for it, and that's what you get as an argument next time around.  And how do
+            // I return the new value?  With a tail expression of course!
+            acc + item * right_counts.get(&item).copied().unwrap_or(0) as i32
+        })
 }
 
 fn main() {

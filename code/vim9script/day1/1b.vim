@@ -28,8 +28,8 @@ var col1 = []
 #
 # col2 is a Dictionary (hash) where we keep track of the frequency
 # of each value.
-# The keys are the values in column 2 of the input data and the value
-# for each key is the number of times that key appears
+# The key is the value from column 2 of the input data and the value
+# is the number of times that key appears.
 #
 var col2 = {}
 
@@ -51,18 +51,26 @@ for line in lines
   # See if the key exists in the dictionary
   #
   if col2->has_key( right )
+    #
     # If it already exists then increment the counter
+    #
     col2[right] += 1
   else
-    # otherwise, create it and initialize the counter to 1
+    #
+    # Otherwise, create the dictionary entry and initialize it to 1
+    #
     col2[right] = 1
   endif
 endfor
 
 var sum = 0
+
 for entry in ( col1 )
   if col2->has_key( entry )
-    sum += ( entry * col2[entry] )
+    #
+    # Multiply the value by the frequency and add it to the sum
+    #
+    sum += entry * col2[entry]
   endif
 endfor
 

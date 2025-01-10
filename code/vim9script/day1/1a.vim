@@ -1,4 +1,4 @@
-#vim9script
+vim9script
 #
 # This vim9script expects the data to be loaded in the current
 # vim buffer.

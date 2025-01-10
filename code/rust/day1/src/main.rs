@@ -33,13 +33,6 @@ impl<T: Ord + Clone> SortExt<T> for [T] {
 }
 
 fn read_the_two_lists() -> (Vec<i32>, Vec<i32>) {
-    fn extract_two_numbers_from_a_line(line: &String) -> (i32, i32) {
-        // This assumes entirely well-formed input.
-        let mut iter = line.split_whitespace();
-        (iter.next().unwrap().parse().unwrap(),
-         iter.next().unwrap().parse().unwrap())
-    }
-
     // No parameters.  We get all our data from stdin.
     let stdin = io::stdin();
 
@@ -60,7 +53,14 @@ fn read_the_two_lists() -> (Vec<i32>, Vec<i32>) {
     // lists.
 
     for line in input_lines {
-        let (left, right) = extract_two_numbers_from_a_line(&line);
+        // Previously parsed `line` with a regex, but simple splitting is easier.
+        let mut iter = line.split_whitespace();
+
+        // This relies on entirely well-formed import.  Every line must contain two numbers.  Grab
+        // the strings for them with `.next().unwrap()`, then turn them into i32's with `parse()`.
+        let left = iter.next().unwrap().parse().unwrap();
+        let right = iter.next().unwrap().parse().unwrap();
+
         left_vec.push(left);
         right_vec.push(right);
     }

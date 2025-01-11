@@ -1,3 +1,4 @@
+\set QUIET ON
 
 CREATE TEMP TABLE data ( line TEXT );
 
@@ -10,8 +11,8 @@ CREATE TEMP TABLE data ( line TEXT );
 --\copy data FROM 'data.txt'
 
 
-SELECT SUM( bar.diff )
-  FROM ( SELECT abs( foo.col1 - foo.col2 ) AS diff
+SELECT SUM( bar.distance ) AS "Total distance between lists"
+  FROM ( SELECT abs( foo.col1 - foo.col2 ) AS distance
           FROM ( SELECT UNNEST( ARRAY( ( SELECT regexp_replace( data.line, '(\d+)\s+(\d+)', '\1' )::INT
                                            FROM data
                                           ORDER BY 1

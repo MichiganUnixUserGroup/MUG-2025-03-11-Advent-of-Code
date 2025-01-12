@@ -1,3 +1,16 @@
+#
+# This Awk script is run by running awk with this script passed on the command line
+# followed by the name of the data file
+#
+# Example:
+#
+#   awk -f 1b.awk data_sample.txt
+#
+#
+# Created by: James McQuillan <jam@McQuil.com>
+#
+#-------------------------------------------------------------------------------
+
 {
   col1[NR] = $1
   col2[$2]++

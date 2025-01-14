@@ -4,3 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+criterion = "0.4"
+
+[[bench]]
+name = "performance"
+harness = false

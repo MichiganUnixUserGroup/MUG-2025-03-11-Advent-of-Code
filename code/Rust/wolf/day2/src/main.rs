@@ -54,6 +54,14 @@ fn is_safe(safety: &ReportSafety) -> bool {
     *safety == ReportSafety::Safe
 }
 
+fn levels_as_string(report: &Report) -> String {
+    report
+        .iter()
+        .map(|n| format!("{}", n))
+        .collect::<Vec<String>>()
+        .join(", ")
+}
+
 fn read_in_the_reports() -> Vec<Report> {
     // No parameters.  We get all our data from stdin.
     io::stdin()
@@ -206,11 +214,7 @@ fn check_unsafe_report_with_problem_dampener_using_brute_force(unsafe_report: &R
         if is_safe(&check_report(&test_report)) {
             if cfg!(debug_assertions) {
                 // Because Report is a type alias, I can't just print or log it.  Ugh.
-                let levels = unsafe_report
-                    .iter()
-                    .map(|n| format!("{}", n))
-                    .collect::<Vec<String>>()
-                    .join(", ");
+                let levels = levels_as_string(&unsafe_report);
                 println!("The Unsafe Report [{}] became Safe when we removed the Level at position {}.", levels, i);
             }
 
@@ -242,8 +246,43 @@ fn number_of_safe_reports_using_problem_dampener(
         .count() as i32
 }
 
+#[cfg(debug_assertions)]
+fn analyze_problem_dampeners(reports: &[Report]) {
+    // TODO: iter passes down a &, filter then gets a &.  I thought returned what it got.  Then why
+    // doesn't map get a reference?  Am I accidentally moving the underlying Reports?  I clone in
+    // multiple places.  Am I doing the right thing?
+    let unsafe_reports = reports
+        .iter()
+        .filter(|&report| {
+            check_report(report) == ReportSafety::Unsafe
+        })
+        .map(|report| report.clone())
+        .collect::<Vec<Report>>();
+
+    let different_outcomes = unsafe_reports
+        .iter()
+        .filter(|&report| {
+            // Yes, this is less efficient.  I could just do the analysis here.
+            check_unsafe_report_with_problem_dampener_using_brute_force(&report) !=
+                check_unsafe_report_with_problem_dampener(&report)
+        })
+        .map(|report| report.clone())
+        .collect::<Vec<Report>>();
+
+    for report in different_outcomes {
+        // print the report
+        let levels = levels_as_string(&report);
+        println!("Here's the Unsafe Report [{}].", levels);
+
+        println!("The \"smart\" test said it was {:?}.", check_unsafe_report_with_problem_dampener(&report));
+        println!("Brute-force test said it was {:?}.", check_unsafe_report_with_problem_dampener_using_brute_force(&report));
+    }
+}
+
 fn main() {
     let reports = read_in_the_reports();
+
+    analyze_problem_dampeners(&reports);  // This call won't even happen in a production build
 
     println!(
         "Day 2, part 1: there are {} safe reports.",

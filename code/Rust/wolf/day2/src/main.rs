@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::io::{self, BufRead};
 
 type Level = i32;         // Each level in a report is an i32
@@ -95,6 +96,90 @@ fn check_report(report: &Report) -> ReportSafety {
     }
 }
 
+fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> ReportSafety {
+    // There are two things that can make a Report Unsafe, differences in sign, and magnitude of
+    // deltas.  Sign is easy.  If we collect the signs of every Level into two sets, signs are a
+    // problem if neither set is empty.  Sign cannot be fixed if both sets have more than two
+    // members.  If one of the sets has only one member then _maybe_ the report can be fixed.
+
+    let check_report_with_removal = |unsafe_report: &Report, index_to_remove| {
+        let mut possibly_safe = unsafe_report.clone();
+        possibly_safe.remove(index_to_remove);
+        check_report(&possibly_safe)
+    };
+
+    let mut negatives: HashSet<usize> = HashSet::new();
+    let mut positives: HashSet<usize> = HashSet::new();
+
+    for (i, level) in unsafe_report.iter().enumerate() {
+        if level.signum() == -1 {
+            negatives.insert(i);
+        } else {
+            positives.insert(i);
+        }
+    }
+
+    // Only look at signs if signs could be the problem.  If either of the sets is empty, signs
+    // can't be the problem.
+    if !(negatives.is_empty() || positives.is_empty()) {
+        if negatives.len() >= 2 && positives.len() >= 2 {
+            // No matter what else might be wrong, signs make us Unsafe even if we can remove one
+            // element
+            return ReportSafety::Unsafe;
+        }
+        // At this point, both of sets are non-empty, and at least one of the sets has less than
+        // two elements.  Therefore, we have exactly one Level of the wrong sign.  Maybe removing
+        // that Level makes the report Safe.
+
+        // One of the two sets has only a single element.  This expression figures out which set
+        // and grabs that item.
+        let index_to_remove: usize = *(if negatives.len() == 1 { negatives } else { positives }).iter().next().unwrap();
+
+        // If the modified Report is Safe, we're done.  If it's Unsafe, we can't possibly make it
+        // Safe in the next section.  Therefore, we can return here whatever check_report says.
+        return check_report_with_removal(&unsafe_report, index_to_remove);
+    }
+
+    // The other thing that makes a Report Unsafe is if the magnitude of the Deltas isn't in 1..=3.
+    // At this point, we know signs weren't the problem, and the supplied report is definitely
+    // Unsafe, therefore, it's the Deltas.  If one Delta is bad, removing the Level on either side
+    // of it might fix the problem.  If two Deltas are bad, and they're adjacent, then removing the
+    // Level between them might fix the problem (we can tell with simple subtraction by the way).
+    // If two Deltas are bad and they're _not_ adjacent, the Report can't be fixed.  If more than
+    // two Deltas are bad, the Report can't be fixed.
+
+    let deltas = unsafe_report.to_deltas();
+    let bad_deltas: Vec<_> = deltas
+        .iter()
+        .enumerate()
+        .filter(|(_i, delta)| !(1..=3).contains(&delta.abs()))
+        .collect();
+
+    match bad_deltas.len() {
+        1 => {
+            if is_safe(&check_report_with_removal(&unsafe_report, bad_deltas[0].0)) {
+                return ReportSafety::Safe;
+            } else if is_safe(&check_report_with_removal(&unsafe_report, bad_deltas[0].0 + 1)) {
+                return ReportSafety::Safe;
+            } else {
+                return ReportSafety::Unsafe;
+            }
+        },
+        2 => {
+            if bad_deltas[1].0 - bad_deltas[0].0 > 1 {
+                // not adjacent
+                return ReportSafety::Unsafe;
+            } else {
+                // adjacent, the only element that might help is the one right between them
+                let index_to_remove: usize = bad_deltas[0].0 + 1;
+                return check_report_with_removal(&unsafe_report, index_to_remove);
+            }
+        },
+        _ => { return ReportSafety::Unsafe; },
+    }
+}
+
+#[allow(dead_code)]
 fn check_unsafe_report_with_problem_dampener_using_brute_force(unsafe_report: &Report) -> ReportSafety {
     // Brute-force.  This just a first pass.  I'll look at the debug out to see the corrected
     // Reports and maybe that will help me figure out a smarter way to do it.
@@ -147,7 +232,7 @@ fn number_of_safe_reports_using_problem_dampener(reports: &[Report]) -> i32 {
     reports
         .iter()
         .map(|report| {
-            if is_safe(&check_report(report)) || is_safe(&check_unsafe_report_with_problem_dampener_using_brute_force(report)) {
+            if is_safe(&check_report(report)) || is_safe(&check_unsafe_report_with_problem_dampener(report)) {
                 ReportSafety::Safe
             } else {
                 ReportSafety::Unsafe

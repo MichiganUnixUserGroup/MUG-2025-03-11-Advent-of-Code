@@ -118,11 +118,13 @@ fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> ReportSa
         check_report(&possibly_safe)
     };
 
+    let deltas = unsafe_report.to_deltas();
+
     let mut negatives: HashSet<usize> = HashSet::new();
     let mut positives: HashSet<usize> = HashSet::new();
 
-    for (i, level) in unsafe_report.iter().enumerate() {
-        if level.signum() == -1 {
+    for (i, delta) in deltas.iter().enumerate() {
+        if delta.signum() == -1 {
             negatives.insert(i);
         } else {
             positives.insert(i);
@@ -138,16 +140,25 @@ fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> ReportSa
             return ReportSafety::Unsafe;
         }
         // At this point, both of sets are non-empty, and at least one of the sets has less than
-        // two elements.  Therefore, we have exactly one Level of the wrong sign.  Maybe removing
-        // that Level makes the report Safe.
+        // two elements.  Therefore, we have exactly one Delta of the wrong sign.  Maybe removing
+        // a Level on one side of that Delta makes the report Safe.
 
         // One of the two sets has only a single element.  This expression figures out which set
-        // and grabs that item.
-        let index_to_remove: usize = *(if negatives.len() == 1 { negatives } else { positives }).iter().next().unwrap();
+        // and grabs that item.  Remember, the sets contain indexes, not the actual Deltas
+        // themselves.
+        let bad_delta_index: usize = *(if negatives.len() == 1 { negatives } else { positives }).iter().next().unwrap();
 
-        // If the modified Report is Safe, we're done.  If it's Unsafe, we can't possibly make it
-        // Safe in the next section.  Therefore, we can return here whatever check_report says.
-        return check_report_with_removal(&unsafe_report, index_to_remove);
+        // TODO: I do almost exactly this same thing where I'm looking at the magnitudes of the
+        // Deltas.  It should probably be factored out.
+        if is_safe(&check_report_with_removal(&unsafe_report, bad_delta_index)) {
+            return ReportSafety::Safe;
+        } else if is_safe(&check_report_with_removal(&unsafe_report, bad_delta_index + 1)) {
+            return ReportSafety::Safe;
+        } else {
+            // If the modified Report is Safe, we're done.  If it's Unsafe, we can't possibly make it
+            // Safe in the next section.  Therefore, we can return here whatever check_report says.
+            return ReportSafety::Unsafe;
+        }
     }
 
     // The other thing that makes a Report Unsafe is if the magnitude of the Deltas isn't in 1..=3.
@@ -158,7 +169,6 @@ fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> ReportSa
     // If two Deltas are bad and they're _not_ adjacent, the Report can't be fixed.  If more than
     // two Deltas are bad, the Report can't be fixed.
 
-    let deltas = unsafe_report.to_deltas();
     let bad_deltas: Vec<_> = deltas
         .iter()
         .enumerate()
@@ -167,6 +177,8 @@ fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> ReportSa
 
     match bad_deltas.len() {
         1 => {
+            // TODO: I do almost exactly this same thing where I'm looking at the signs of the
+            // Deltas.  It should probably be factored out.
             if is_safe(&check_report_with_removal(&unsafe_report, bad_deltas[0].0)) {
                 return ReportSafety::Safe;
             } else if is_safe(&check_report_with_removal(&unsafe_report, bad_deltas[0].0 + 1)) {
@@ -282,7 +294,8 @@ fn analyze_problem_dampeners(reports: &[Report]) {
 fn main() {
     let reports = read_in_the_reports();
 
-    analyze_problem_dampeners(&reports);  // This call won't even happen in a production build
+    #[cfg(debug_assertions)]
+    analyze_problem_dampeners(&reports);
 
     println!(
         "Day 2, part 1: there are {} safe reports.",
@@ -290,7 +303,15 @@ fn main() {
     );
 
     println!(
-        "Day 2, part 2: there are {} safe reports when using the problem dampener.",
+        "Day 2, part 2 (smart): there are {} safe reports when using the problem dampener.",
+        number_of_safe_reports_using_problem_dampener(
+            &reports,
+            check_unsafe_report_with_problem_dampener
+        )
+    );
+
+    println!(
+        "Day 2, part 2 (brute-force): there are {} safe reports when using the problem dampener.",
         number_of_safe_reports_using_problem_dampener(
             &reports,
             check_unsafe_report_with_problem_dampener_using_brute_force

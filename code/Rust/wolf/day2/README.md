@@ -8,3 +8,6 @@ I did lots of fun things for Day 2.  So there are many things to see here:
   * made an enum and derived a bunch of traits
   * made type aliases
   * nested iterator stacks (look inside the map that's part of read_in_the_reports)
+
+Yes.  I spent **way** too much time working on this one problem; but I'm learning, and I'm
+presenting this, and I still wanted good solutions, too.

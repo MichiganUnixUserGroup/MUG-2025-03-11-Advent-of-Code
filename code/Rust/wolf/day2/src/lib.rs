@@ -1,11 +1,13 @@
 use std::collections::HashSet;
 use std::io::{self, BufRead};
 
-pub type Level = i32;         // Each level in a report is an i32
-pub type Delta = i32;         // The distance between two adjacent levels in a Report
+pub type Level = i32; // Each level in a report is an i32
+pub type Delta = i32; // The distance between two adjacent levels in a Report
 pub type Report = Vec<Level>; // A report is a vector of levels
 
-// TODO: are my names too long?  I have to wrap calls.  Look at this.
+// TODO: Are my names too long?  I have to wrap calls.  Look at this.
+// TODO: I really don't understand, when inside different kinds of blocks, when I can use a tail
+// expression and when I can't.
 
 // Why create ToDeltas and to_deltas?  When I got to part 2, I saw that I would have to use the
 // Deltas multiple times.  Storing them is one choice, but I went with recalculating them.  So I
@@ -22,11 +24,10 @@ pub trait ToDeltas {
 
 impl ToDeltas for Report {
     fn to_deltas(&self) -> Vec<Delta> {
-
         // Calculate the Deltas, the difference between adjacent Levels in the Report.  It's the
         // Deltas that we look at to determine if the Report is Safe or Unsafe.  There are lots of
         // ways to calculate the Deltas.  I picked the conceptually simple (but maybe non-obvious)
-        // way.  For each Delta what I care about is the Level to its left and the level to its
+        // way.  For each Delta, what I care about is the Level to its left and the Level to its
         // right. If I had those as a tuple, I could just do subtraction.  .zip of two lists gives
         // me a tuple.  So if I had a list of left-Levels and a list of right-Levels I could do it.
         // The left-Levels is just all of the Levels except the last one.  The right-Levels is all
@@ -107,7 +108,7 @@ pub fn check_report(report: &Report) -> ReportSafety {
 
 pub fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> ReportSafety {
     // There are two things that can make a Report Unsafe, differences in sign, and magnitude of
-    // deltas.  Sign is easy.  If we collect the signs of every Level into two sets, signs are a
+    // Deltas.  Sign is easy.  If we collect the signs of every Delta into two sets, signs are a
     // problem if neither set is empty.  Sign cannot be fixed if both sets have more than two
     // members.  If one of the sets has only one member then _maybe_ the report can be fixed.
 
@@ -117,23 +118,38 @@ pub fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> Repo
         check_report(&possibly_safe)
     };
 
+    let check_report_with_removal_around_a_delta = |unsafe_report: &Report, index_of_delta| {
+        if is_safe(&check_report_with_removal(&unsafe_report, index_of_delta)) {
+            ReportSafety::Safe
+        } else if is_safe(&check_report_with_removal(
+            &unsafe_report,
+            index_of_delta + 1,
+        )) {
+            ReportSafety::Safe
+        } else {
+            ReportSafety::Unsafe
+        }
+    };
+
     let deltas = unsafe_report.to_deltas();
 
-    let mut negatives: HashSet<usize> = HashSet::new();
-    let mut positives: HashSet<usize> = HashSet::new();
+    let mut negative_deltas: HashSet<usize> = HashSet::new();
+    let mut positive_deltas: HashSet<usize> = HashSet::new();
 
     for (i, delta) in deltas.iter().enumerate() {
+        // TODO: Do I like it expanded like this?  Or do I want to select the set and just call
+        // .insert once?
         if delta.signum() == -1 {
-            negatives.insert(i);
+            negative_deltas.insert(i);
         } else {
-            positives.insert(i);
+            positive_deltas.insert(i);
         }
     }
 
     // Only look at signs if signs could be the problem.  If either of the sets is empty, signs
     // can't be the problem.
-    if !(negatives.is_empty() || positives.is_empty()) {
-        if negatives.len() >= 2 && positives.len() >= 2 {
+    if !(negative_deltas.is_empty() || positive_deltas.is_empty()) {
+        if negative_deltas.len() >= 2 && positive_deltas.len() >= 2 {
             // No matter what else might be wrong, signs make us Unsafe even if we can remove one
             // element
             return ReportSafety::Unsafe;
@@ -145,24 +161,20 @@ pub fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> Repo
         // One of the two sets has only a single element.  This expression figures out which set
         // and grabs that item.  Remember, the sets contain indexes, not the actual Deltas
         // themselves.
-        let bad_delta_index: usize = *(if negatives.len() == 1 { negatives } else { positives }).iter().next().unwrap();
-
-        // TODO: I do almost exactly this same thing where I'm looking at the magnitudes of the
-        // Deltas.  It should probably be factored out.
-        if is_safe(&check_report_with_removal(&unsafe_report, bad_delta_index)) {
-            return ReportSafety::Safe;
-        } else if is_safe(&check_report_with_removal(&unsafe_report, bad_delta_index + 1)) {
-            return ReportSafety::Safe;
+        let bad_delta_index: usize = *(if negative_deltas.len() == 1 {
+            negative_deltas
         } else {
-            // If the modified Report is Safe, we're done.  If it's Unsafe, we can't possibly make it
-            // Safe in the next section.  Therefore, we can return here whatever check_report says.
-            return ReportSafety::Unsafe;
-        }
+            positive_deltas
+        })
+        .iter()
+        .next()
+        .unwrap();
+        return check_report_with_removal_around_a_delta(&unsafe_report, bad_delta_index);
     }
 
     // The other thing that makes a Report Unsafe is if the magnitude of the Deltas isn't in 1..=3.
     // At this point, we know signs weren't the problem, and the supplied report is definitely
-    // Unsafe, therefore, it's the Deltas.  If one Delta is bad, removing the Level on either side
+    // Unsafe, therefore, it's the magnitudes.  If one Delta is bad, removing the Level on either side
     // of it might fix the problem.  If two Deltas are bad, and they're adjacent, then removing the
     // Level between them might fix the problem (we can tell with simple subtraction by the way).
     // If two Deltas are bad and they're _not_ adjacent, the Report can't be fixed.  If more than
@@ -176,16 +188,8 @@ pub fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> Repo
 
     match bad_deltas.len() {
         1 => {
-            // TODO: I do almost exactly this same thing where I'm looking at the signs of the
-            // Deltas.  It should probably be factored out.
-            if is_safe(&check_report_with_removal(&unsafe_report, bad_deltas[0].0)) {
-                return ReportSafety::Safe;
-            } else if is_safe(&check_report_with_removal(&unsafe_report, bad_deltas[0].0 + 1)) {
-                return ReportSafety::Safe;
-            } else {
-                return ReportSafety::Unsafe;
-            }
-        },
+            return check_report_with_removal_around_a_delta(&unsafe_report, bad_deltas[0].0);
+        }
         2 => {
             if bad_deltas[1].0 - bad_deltas[0].0 > 1 {
                 // not adjacent
@@ -195,41 +199,28 @@ pub fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> Repo
                 let index_to_remove: usize = bad_deltas[0].0 + 1;
                 return check_report_with_removal(&unsafe_report, index_to_remove);
             }
-        },
-        _ => { return ReportSafety::Unsafe; },
+        }
+        _ => {
+            return ReportSafety::Unsafe;
+        }
     }
 }
 
-pub fn check_unsafe_report_with_problem_dampener_using_brute_force(unsafe_report: &Report) -> ReportSafety {
-    // Brute-force.  This just a first pass.  I'll look at the debug out to see the corrected
-    // Reports and maybe that will help me figure out a smarter way to do it.
-
-    if cfg!(debug_assertions) {
-        // I probably don't need this whole clause.
-        if is_safe(&check_report(unsafe_report)) {
-            println!("Called check_unsafe_report_with_problem_dampener_using_brute_force with a Report that was actually Safe.");
-
-            // Rust complained when I tried to use a tail expression here.  I think it's because of
-            // the cfg!.
-            return ReportSafety::Safe;
-        }
-    }
-
+pub fn check_unsafe_report_with_problem_dampener_using_brute_force(
+    unsafe_report: &Report,
+) -> ReportSafety {
     // Nothing smart, we're allowed to fix the Report by removing one Level, so just try it for
-    // each Level in turn.  Break out early when we find a Safe result.
+    // each Level in turn.
     for i in 0..unsafe_report.len() {
         let mut test_report = unsafe_report.clone();
+
         // Also nothing smart.  We could have stuffed together two slices (before and after the
         // removed Level), but we'll just us Vec::remove.
         test_report.remove(i);
-        if is_safe(&check_report(&test_report)) {
-            if cfg!(debug_assertions) {
-                // Because Report is a type alias, I can't just print or log it.  Ugh.
-                let levels = levels_as_string(&unsafe_report);
-                println!("The Unsafe Report [{}] became Safe when we removed the Level at position {}.", levels, i);
-            }
 
-            // A tail expression doesn't exit the function, just the loop
+        if is_safe(&check_report(&test_report)) {
+            // A tail expression doesn't exit the function, just the loop.  If we found a Safe one,
+            // we can break out early.
             return ReportSafety::Safe;
         }
     }
@@ -237,22 +228,15 @@ pub fn check_unsafe_report_with_problem_dampener_using_brute_force(unsafe_report
 }
 
 pub fn number_of_safe_reports(reports: &[Report]) -> i32 {
-    reports
-        .iter()
-        .map(check_report)
-        .filter(is_safe)
-        .count() as i32
+    reports.iter().map(check_report).filter(is_safe).count() as i32
 }
 
 pub fn number_of_safe_reports_using_problem_dampener(
     reports: &[Report],
     problem_dampener_check: fn(&Report) -> ReportSafety,
-) -> i32
-{
+) -> i32 {
     reports
         .iter()
-        .filter(|report| {
-            is_safe(&check_report(report)) || is_safe(&problem_dampener_check(report))
-        })
+        .filter(|report| is_safe(&check_report(report)) || is_safe(&problem_dampener_check(report)))
         .count() as i32
 }

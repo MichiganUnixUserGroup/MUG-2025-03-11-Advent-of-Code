@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 use std::io::{self, BufRead};
 
+// TODO: are my names too long?  I have to wrap calls.  Look at this.
+
 type Level = i32;         // Each level in a report is an i32
 type Delta = i32;         // The distance between two adjacent levels in a Report
 type Report = Vec<Level>; // A report is a vector of levels
@@ -179,7 +181,6 @@ fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> ReportSa
     }
 }
 
-#[allow(dead_code)]
 fn check_unsafe_report_with_problem_dampener_using_brute_force(unsafe_report: &Report) -> ReportSafety {
     // Brute-force.  This just a first pass.  I'll look at the debug out to see the corrected
     // Reports and maybe that will help me figure out a smarter way to do it.
@@ -228,17 +229,16 @@ fn number_of_safe_reports(reports: &[Report]) -> i32 {
         .count() as i32
 }
 
-fn number_of_safe_reports_using_problem_dampener(reports: &[Report]) -> i32 {
+fn number_of_safe_reports_using_problem_dampener(
+    reports: &[Report],
+    problem_dampener_check: fn(&Report) -> ReportSafety,
+) -> i32
+{
     reports
         .iter()
-        .map(|report| {
-            if is_safe(&check_report(report)) || is_safe(&check_unsafe_report_with_problem_dampener(report)) {
-                ReportSafety::Safe
-            } else {
-                ReportSafety::Unsafe
-            }
+        .filter(|report| {
+            is_safe(&check_report(report)) || is_safe(&problem_dampener_check(report))
         })
-        .filter(is_safe)
         .count() as i32
 }
 
@@ -252,7 +252,10 @@ fn main() {
 
     println!(
         "Day 2, part 2: there are {} safe reports when using the problem dampener.",
-        number_of_safe_reports_using_problem_dampener(&reports)
+        number_of_safe_reports_using_problem_dampener(
+            &reports,
+            check_unsafe_report_with_problem_dampener_using_brute_force
+        )
     );
 }
 
@@ -280,8 +283,26 @@ mod tests {
     }
 
     #[test]
-    fn test_day2_part2() {
+    fn test_day2_part2_brute_force() {
         let reports = test_reports();
-        assert_eq!(number_of_safe_reports_using_problem_dampener(&reports), 4);
+        assert_eq!(
+            number_of_safe_reports_using_problem_dampener(
+                &reports,
+                check_unsafe_report_with_problem_dampener_using_brute_force
+            ),
+            4
+        );
+    }
+
+    #[test]
+    fn test_day2_part2_smart() {
+        let reports = test_reports();
+        assert_eq!(
+            number_of_safe_reports_using_problem_dampener(
+                &reports,
+                check_unsafe_report_with_problem_dampener
+            ),
+            4
+        );
     }
 }

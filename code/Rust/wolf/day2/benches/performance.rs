@@ -1,7 +1,8 @@
 use day2::{
-    check_unsafe_report_with_problem_dampener,
-    check_unsafe_report_with_problem_dampener_using_brute_force,
-    number_of_safe_reports_using_problem_dampener, read_in_the_reports,
+    read_in_the_reports,
+    try_to_make_report_safe_smart,
+    try_to_make_report_safe_brute_force,
+    count_safe_reports,
 };
 
 use criterion::{criterion_group, criterion_main, Criterion};
@@ -11,17 +12,17 @@ fn benchmark_methods(c: &mut Criterion) {
 
     c.bench_function("Smart method", |b| {
         b.iter(|| {
-            number_of_safe_reports_using_problem_dampener(
+            count_safe_reports(
                 &reports,
-                check_unsafe_report_with_problem_dampener,
+                try_to_make_report_safe_smart,
             )
         })
     });
     c.bench_function("Brute-force method", |b| {
         b.iter(|| {
-            number_of_safe_reports_using_problem_dampener(
+            count_safe_reports(
                 &reports,
-                check_unsafe_report_with_problem_dampener_using_brute_force,
+                try_to_make_report_safe_brute_force,
             )
         })
     });

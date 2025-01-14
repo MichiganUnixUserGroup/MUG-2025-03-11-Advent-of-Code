@@ -5,7 +5,6 @@ pub type Level = i32; // Each level in a report is an i32
 pub type Delta = i32; // The distance between two adjacent levels in a Report
 pub type Report = Vec<Level>; // A report is a vector of levels
 
-// TODO: Are my names too long?  I have to wrap calls.  Look at this.
 // TODO: I really don't understand, when inside different kinds of blocks, when I can use a tail
 // expression and when I can't.
 
@@ -106,7 +105,11 @@ pub fn check_report(report: &Report) -> ReportSafety {
     }
 }
 
-pub fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> ReportSafety {
+pub fn dont_try_to_make_report_safe(_unsafe_report: &Report) -> ReportSafety {
+    ReportSafety::Unsafe
+}
+
+pub fn try_to_make_report_safe_smart(unsafe_report: &Report) -> ReportSafety {
     // There are two things that can make a Report Unsafe, differences in sign, and magnitude of
     // Deltas.  Sign is easy.  If we collect the signs of every Delta into two sets, signs are a
     // problem if neither set is empty.  Sign cannot be fixed if both sets have more than two
@@ -133,6 +136,7 @@ pub fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> Repo
 
     let deltas = unsafe_report.to_deltas();
 
+    // These sets hold the _indexes_ of the Deltas
     let mut negative_deltas: HashSet<usize> = HashSet::new();
     let mut positive_deltas: HashSet<usize> = HashSet::new();
 
@@ -206,7 +210,7 @@ pub fn check_unsafe_report_with_problem_dampener(unsafe_report: &Report) -> Repo
     }
 }
 
-pub fn check_unsafe_report_with_problem_dampener_using_brute_force(
+pub fn try_to_make_report_safe_brute_force(
     unsafe_report: &Report,
 ) -> ReportSafety {
     // Nothing smart, we're allowed to fix the Report by removing one Level, so just try it for
@@ -227,16 +231,12 @@ pub fn check_unsafe_report_with_problem_dampener_using_brute_force(
     ReportSafety::Unsafe
 }
 
-pub fn number_of_safe_reports(reports: &[Report]) -> i32 {
-    reports.iter().map(check_report).filter(is_safe).count() as i32
-}
-
-pub fn number_of_safe_reports_using_problem_dampener(
+pub fn count_safe_reports(
     reports: &[Report],
-    problem_dampener_check: fn(&Report) -> ReportSafety,
+    try_to_make_report_safe: fn(&Report) -> ReportSafety,
 ) -> i32 {
     reports
         .iter()
-        .filter(|report| is_safe(&check_report(report)) || is_safe(&problem_dampener_check(report)))
+        .filter(|report| is_safe(&check_report(report)) || is_safe(&try_to_make_report_safe(report)))
         .count() as i32
 }

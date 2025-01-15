@@ -1,7 +1,12 @@
 use std::io::{self, Read};
+use lazy_static::lazy_static;
 use regex::Regex;
 
 const MUL_PATTERN: &str = r"(?ms)mul\(([0-9]{1,3}),([0-9]{1,3})\)";
+
+lazy_static! {
+    static ref MUL_REGEX: Regex = Regex::new(MUL_PATTERN).unwrap();
+}
 
 fn read_input() -> String {
     let mut input = String::new();
@@ -10,8 +15,7 @@ fn read_input() -> String {
 }
 
 fn sum_of_muls(input: &str) -> i32 {
-    let mul_re = Regex::new(MUL_PATTERN).unwrap();
-    mul_re.captures_iter(input)
+    MUL_REGEX.captures_iter(input)
         .map(|caps| {
             let (_, [x_str, y_str]) = caps.extract();
             let x: i32 = x_str.parse().unwrap();
@@ -23,6 +27,7 @@ fn sum_of_muls(input: &str) -> i32 {
 
 fn sum_of_muls_with_conditions(input: &str) -> i32 {
     // I wish I could use RegexSet here, but that won't capture.
+    // TODO: Better names for all variables, and for the function itself
     let do_re = Regex::new(r"(?ms)do\(\)").unwrap();
     let dont_re = Regex::new(r"(?ms)don\'t\(\)").unwrap();
 
@@ -44,6 +49,7 @@ fn sum_of_muls_with_conditions(input: &str) -> i32 {
             processed_offset = next_processed_offset;
             capturing_muls = false;
         } else {
+            // TODO: This should probably be "else if"
             // Find the next "do()", update the processed_offset, begin capturing
             if let Some(m) = do_re.find_at(input, processed_offset) {
                 capturing_muls = true;

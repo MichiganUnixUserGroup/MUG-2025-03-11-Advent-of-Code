@@ -35,3 +35,18 @@ fn main() {
 
     println!("Day 3, part 1: the total of all valid multiplications is {}.", part1_total);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // These are the same strings from the problem description.  I'll compare against the
+    // answers given in the same place.
+    const PART1_INPUT: &str = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
+
+    #[test]
+    fn test_day3_part1() {
+        let total = sum_of_muls(PART1_INPUT);
+        assert_eq!(total, 161);
+    }
+}

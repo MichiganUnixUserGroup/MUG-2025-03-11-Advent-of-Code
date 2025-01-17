@@ -17,6 +17,8 @@ pub type Report = Vec<Level>; // A report is a vector of levels
 //
 // It's a totally cosmetic choice.  I prefer the second choice.
 
+// TODO: I think I don't need the trait.  I can just impl Report and define to_deltas
+
 pub trait ToDeltas {
     fn to_deltas(&self) -> Vec<Delta>;
 }

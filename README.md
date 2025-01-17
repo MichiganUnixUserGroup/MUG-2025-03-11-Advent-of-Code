@@ -21,13 +21,23 @@ reasonably require a person to install the appropriate compiler or interpreter
 to do it.  If it needs an explanation to run it, or a URL to the needed
 compiler or interpreter, provide a README.  **Do** include the sample data from
 the problem description.  **Don't** include the real data the web-site gave you
-(which is unique to you anyway); add a .gitignore if that's helpful to you.
-Solve the Day 1 problems.  If you like, solve other days, too.
+(which is unique to you anyway).  See below for some restrictions.  Add a
+.gitignore if that's helpful to you. Solve the Day 1 problems.  If you like,
+solve other days, too.
 
 In the particular implementations that I wrote, to focus on the problems, I
 avoided command-line arguments.  My programs read the data from stdin.  Doing
 command-line parsing makes your programs bigger, but might be interesting!  You
 do what you feel is right.
+
+I will now quote from the [Advent of Code About Page](https://adventofcode.com/2024/about):
+
+> Can I copy/redistribute part of Advent of Code?
+>
+> Please don't. Advent of Code is free to use, not free to copy. If you're
+> posting a code repository somewhere, please don't include parts of Advent of
+> Code like the puzzle text or your inputs. If you're making a website, please
+> don't make it look like Advent of Code or name it something similar.
 
 This is about languages, and techniques, and how people are different, and
 having fun!

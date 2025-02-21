@@ -83,7 +83,8 @@ fn distance_between_the_two_lists(left_slice: &[i32], right_slice: &[i32]) -> i3
     // subtracts to find that difference, but we need it to be positive, so `.abs()`.  Finally,
     // `.sum()` adds them all up.  That sum is the final answer.  Note again, this is a tail
     // expression: the return value of the function.
-    left_vec.iter()
+    left_vec
+        .iter()
         .zip(right_vec.iter())
         .map(|(l, r)| (l - r).abs())
         .sum()
@@ -102,16 +103,15 @@ fn similarity_score(left_slice: &[i32], right_slice: &[i32]) -> i32 {
     // list multiple times, it counts every time.  Note (again) that the entire following
     // expression is a tail expression: the return value of the function.
 
-    left_slice.iter()
-        .fold(0, |acc, &item| {
-            // `.get` returns an `Option<&u32>` (because counts are unsigned).  Why it stores a
-            // reference I don't know.  `.copied()` turns that into a `Option<u32>`.  It's no longer a
-            // reference so I don't have dereference the whole lookup, nor give `&0` as the fallback
-            // value.  It feels cleaner to me.  Note that in `fold` you don't modify `acc`, you return
-            // a new value for it, and that's what you get as an argument next time around.  And how do
-            // I return the new value?  With a tail expression of course!
-            acc + item * right_counts.get(&item).copied().unwrap_or(0) as i32
-        })
+    left_slice.iter().fold(0, |acc, &item| {
+        // `.get` returns an `Option<&u32>` (because counts are unsigned).  Why it stores a
+        // reference I don't know.  `.copied()` turns that into a `Option<u32>`.  It's no longer a
+        // reference so I don't have dereference the whole lookup, nor give `&0` as the fallback
+        // value.  It feels cleaner to me.  Note that in `fold` you don't modify `acc`, you return
+        // a new value for it, and that's what you get as an argument next time around.  And how do
+        // I return the new value?  With a tail expression of course!
+        acc + item * right_counts.get(&item).copied().unwrap_or(0) as i32
+    })
 }
 
 fn main() {

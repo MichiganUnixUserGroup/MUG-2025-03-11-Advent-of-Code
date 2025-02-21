@@ -1,6 +1,6 @@
-use std::io::{self, Read};
 use lazy_static::lazy_static;
 use regex::Regex;
+use std::io::{self, Read};
 
 const MUL_PATTERN: &str = r"(?ms)mul\(([0-9]{1,3}),([0-9]{1,3})\)";
 
@@ -15,7 +15,8 @@ fn read_input() -> String {
 }
 
 fn sum_of_muls(input: &str) -> i32 {
-    MUL_REGEX.captures_iter(input)
+    MUL_REGEX
+        .captures_iter(input)
         .map(|caps| {
             let (_, [x_str, y_str]) = caps.extract();
             let x: i32 = x_str.parse().unwrap();
@@ -68,8 +69,14 @@ fn main() {
     let part1_total: i32 = sum_of_muls(input);
     let part2_total: i32 = sum_of_muls_with_conditions(input);
 
-    println!("Day 3, part 1: the total of all valid multiplications is {}.", part1_total);
-    println!("Day 3, part 2: the conditional total of multiplications is {}.", part2_total);
+    println!(
+        "Day 3, part 1: the total of all valid multiplications is {}.",
+        part1_total
+    );
+    println!(
+        "Day 3, part 2: the conditional total of multiplications is {}.",
+        part2_total
+    );
 }
 
 #[cfg(test)]
@@ -78,8 +85,10 @@ mod tests {
 
     // These are the same strings from the problem description.  I'll compare against the
     // answers given in the same place.
-    const PART1_INPUT: &str = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
-    const PART2_INPUT: &str = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
+    const PART1_INPUT: &str =
+        "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
+    const PART2_INPUT: &str =
+        "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
 
     #[test]
     fn test_day3_part1() {

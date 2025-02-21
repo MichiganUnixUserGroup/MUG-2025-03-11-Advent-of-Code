@@ -1,9 +1,6 @@
 use day2::{
-    read_in_the_reports,
-    dont_try_to_make_report_safe,
-    try_to_make_report_safe_smart,
-    try_to_make_report_safe_brute_force,
-    count_safe_reports,
+    count_safe_reports, dont_try_to_make_report_safe, read_in_the_reports,
+    try_to_make_report_safe_brute_force, try_to_make_report_safe_smart,
 };
 
 #[cfg(test)]
@@ -19,18 +16,12 @@ fn main() {
 
     println!(
         "Day 2, part 2 (smart): there are {} safe reports when using the problem dampener.",
-        count_safe_reports(
-            &reports,
-            try_to_make_report_safe_smart
-        )
+        count_safe_reports(&reports, try_to_make_report_safe_smart)
     );
 
     println!(
         "Day 2, part 2 (brute-force): there are {} safe reports when using the problem dampener.",
-        count_safe_reports(
-            &reports,
-            try_to_make_report_safe_brute_force
-        )
+        count_safe_reports(&reports, try_to_make_report_safe_brute_force)
     );
 }
 
@@ -54,17 +45,17 @@ mod tests {
     #[test]
     fn test_day2_part1() {
         let reports = test_reports();
-        assert_eq!(count_safe_reports(&reports, dont_try_to_make_report_safe), 2);
+        assert_eq!(
+            count_safe_reports(&reports, dont_try_to_make_report_safe),
+            2
+        );
     }
 
     #[test]
     fn test_day2_part2_smart() {
         let reports = test_reports();
         assert_eq!(
-            count_safe_reports(
-                &reports,
-                try_to_make_report_safe_smart
-            ),
+            count_safe_reports(&reports, try_to_make_report_safe_smart),
             4
         );
     }
@@ -73,10 +64,7 @@ mod tests {
     fn test_day2_part2_brute_force() {
         let reports = test_reports();
         assert_eq!(
-            count_safe_reports(
-                &reports,
-                try_to_make_report_safe_brute_force
-            ),
+            count_safe_reports(&reports, try_to_make_report_safe_brute_force),
             4
         );
     }

@@ -212,9 +212,7 @@ pub fn try_to_make_report_safe_smart(unsafe_report: &Report) -> ReportSafety {
     }
 }
 
-pub fn try_to_make_report_safe_brute_force(
-    unsafe_report: &Report,
-) -> ReportSafety {
+pub fn try_to_make_report_safe_brute_force(unsafe_report: &Report) -> ReportSafety {
     // Nothing smart, we're allowed to fix the Report by removing one Level, so just try it for
     // each Level in turn.
     for i in 0..unsafe_report.len() {
@@ -239,6 +237,8 @@ pub fn count_safe_reports(
 ) -> i32 {
     reports
         .iter()
-        .filter(|report| is_safe(&check_report(report)) || is_safe(&try_to_make_report_safe(report)))
+        .filter(|report| {
+            is_safe(&check_report(report)) || is_safe(&try_to_make_report_safe(report))
+        })
         .count() as i32
 }

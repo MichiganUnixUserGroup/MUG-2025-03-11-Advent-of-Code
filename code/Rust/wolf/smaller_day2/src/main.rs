@@ -15,8 +15,7 @@ fn read_in_the_reports() -> Vec<Vec<i32>> {
         .lock()
         .lines()
         .map(|line| {
-            line
-                .unwrap()
+            line.unwrap()
                 .split_whitespace()
                 .map(|num_str| num_str.parse::<i32>().unwrap())
                 .collect()
@@ -47,9 +46,7 @@ fn dont_try_to_make_report_safe(_unsafe_report: &Vec<i32>) -> ReportSafety {
     ReportSafety::Unsafe
 }
 
-fn try_to_make_report_safe(
-    unsafe_report: &Vec<i32>,
-) -> ReportSafety {
+fn try_to_make_report_safe(unsafe_report: &Vec<i32>) -> ReportSafety {
     for i in 0..unsafe_report.len() {
         let mut test_report = unsafe_report.clone();
         test_report.remove(i);
@@ -60,10 +57,7 @@ fn try_to_make_report_safe(
     ReportSafety::Unsafe
 }
 
-fn count_safe_reports(
-    reports: &[Vec<i32>],
-    dampener: fn(&Vec<i32>) -> ReportSafety,
-) -> i32 {
+fn count_safe_reports(reports: &[Vec<i32>], dampener: fn(&Vec<i32>) -> ReportSafety) -> i32 {
     reports
         .iter()
         .filter(|report| is_safe(&check_report(report)) || is_safe(&dampener(report)))
@@ -80,9 +74,6 @@ fn main() {
 
     println!(
         "Day 2, part 2: there are {} safe reports when using the problem dampener.",
-        count_safe_reports(
-            &reports,
-            try_to_make_report_safe
-        )
+        count_safe_reports(&reports, try_to_make_report_safe)
     );
 }

@@ -1,0 +1,10 @@
+[project]
+name = "day1"
+version = "0.1.0"
+description = "Advent of Code, day 1, parts 1 and 2, in Python"
+readme = "README.md"
+requires-python = ">=3.13.2"
+dependencies = [
+    "typer>=0.15.1",
+    "pytest>=8.3.4",
+]

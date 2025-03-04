@@ -1,1 +1,0 @@
-I plan to add one more implementation here: a version just like 03-packages, but where the `list_tools` package is implemented in Rust (using pyo3) instead of in Python.  I'm just not ready to commit that yet.

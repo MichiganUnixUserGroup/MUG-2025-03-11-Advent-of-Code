@@ -17,7 +17,7 @@ DATA_FILE_PATH = os.path.join(BASE_FILE_PATH, DATA_FILENAME)
 ############
 
 
-def parse_data() -> tuple[list, list]:
+def parse_data() -> tuple[list[int], list[int]]:
     """Parse a space-deliminated 2-column file of integers into two lists."""
     list1 = []
     list2 = []
@@ -32,10 +32,10 @@ def parse_data() -> tuple[list, list]:
     return (list1, list2)
 
 
-def caclulate_differences(l1: list, l2: list) -> int:
+def caclulate_differences(l1: list[int], l2: list[int]) -> int:
     """For each smallest value of each list,
     pop, and find the difference between the two.
-    Print the sum of all differences."""
+    Return the sum of all differences."""
     sum = 0
 
     for iteration in range(len(l1)):
@@ -49,10 +49,11 @@ def caclulate_differences(l1: list, l2: list) -> int:
             
         sum += difference
         
-        
-    print(f"Sum of all differences: {sum}")
+    return sum
     
     
 if __name__ == "__main__":
     list1, list2 = parse_data()
-    caclulate_differences(list1, list2)
+    sum = caclulate_differences(list1, list2)
+    
+    print(f"Sum of all differences: {sum}")

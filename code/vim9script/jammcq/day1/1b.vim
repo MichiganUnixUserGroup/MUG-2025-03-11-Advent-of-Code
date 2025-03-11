@@ -21,13 +21,14 @@ vim9script
 var lines = getline( 1, '$' )
 
 #
-# col1 is a list of all of the values in column 1 of the input data
+# Create col1 to hold a list of all of the values in column 1 of the input data
 #
 var col1 = []
 
 #
-# col2 is a Dictionary (hash) where we keep track of the frequency
+# Create col2 as a Dictionary (hash) to keep track of the frequency
 # of each value.
+#
 # The key is the value from column 2 of the input data and the value
 # is the number of times that key appears.
 #
@@ -37,7 +38,7 @@ var col2 = {}
 # Loop through the lines of data and build the List and Dictionary
 #
 for line in lines
-  var flds  = line->split()              # Split on whitespace
+  var flds  = line->split()    # Split on whitespace and put the values into the array called 'flds'
 
   #
   # Get the values of the 2 columns and turn them into numbers

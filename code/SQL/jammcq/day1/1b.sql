@@ -39,7 +39,7 @@ INSERT INTO columns (
                                ) )
                       ) AS foo;
 
-SELECT SUM(bar.similarity_score) AS "Total simularity score"
+SELECT SUM( bar.similarity_score ) AS "Total simularity score"
   FROM (
          SELECT columns.col1 * ( SELECT COUNT(*)
                                    FROM columns AS foo

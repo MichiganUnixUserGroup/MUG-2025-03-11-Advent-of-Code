@@ -35,7 +35,7 @@ def parse_data() -> tuple[list, list]:
 def caclulate_differences(l1: list, l2: list) -> int:
     """For each smallest value of each list,
     pop, and find the difference between the two.
-    Return the sum of all differences."""
+    Print the sum of all differences."""
     sum = 0
 
     for iteration in range(len(l1)):
